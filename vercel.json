@@ -25,10 +25,5 @@
       "src": "/(.*)",
       "dest": "frontend/$1"
     }
-  ],
-  "functions": {
-    "api/vercel_app.py": {
-      "maxDuration": 30
-    }
-  }
+  ]
 } 
