@@ -36,6 +36,12 @@ function App() {
 
   const handleFileSelect = (file) => {
     if (file && file.type === 'application/pdf') {
+      // Check file size (4MB limit for Vercel)
+      const MAX_FILE_SIZE = 4 * 1024 * 1024 // 4MB
+      if (file.size > MAX_FILE_SIZE) {
+        alert(`File too large. Maximum size is 4MB. Your file is ${(file.size / (1024*1024)).toFixed(1)}MB`)
+        return
+      }
       setPdfFile(file)
     } else {
       alert('Please select a PDF file')
@@ -234,7 +240,7 @@ function App() {
                 {pdfFile ? pdfFile.name : 'Click to upload or drag and drop'}
               </div>
               <div className="upload-subtext">
-                PDF files only
+                PDF files only (max 4MB)
               </div>
               <input
                 ref={fileInputRef}

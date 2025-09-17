@@ -87,6 +87,18 @@ async def upload_pdf(file: UploadFile = File(...), api_key: str = Form(...)):
         if not file.filename.lower().endswith('.pdf'):
             raise HTTPException(status_code=400, detail="Only PDF files are allowed")
         
+        # Check file size (Vercel has a 4.5MB limit for serverless functions)
+        MAX_FILE_SIZE = 4 * 1024 * 1024  # 4MB limit
+        file_content = await file.read()
+        if len(file_content) > MAX_FILE_SIZE:
+            raise HTTPException(
+                status_code=413, 
+                detail=f"File too large. Maximum size is 4MB. Your file is {len(file_content) / (1024*1024):.1f}MB"
+            )
+        
+        # Reset file pointer
+        await file.seek(0)
+        
         # Create temporary file
         with tempfile.NamedTemporaryFile(delete=False, suffix='.pdf') as tmp_file:
             shutil.copyfileobj(file.file, tmp_file)
