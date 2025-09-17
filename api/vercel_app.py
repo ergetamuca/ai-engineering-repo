@@ -15,9 +15,27 @@ import json
 import sys
 sys.path.append('/Users/ergetamuca/Desktop/ai-engineering-repo')
 from aimakerspace.vectordatabase import VectorDatabase
-from aimakerspace.text_utils import PDFLoader, CharacterTextSplitter
+from aimakerspace.text_utils import CharacterTextSplitter
 from aimakerspace.openai_utils.chatmodel import ChatOpenAI
 from aimakerspace.openai_utils.embedding import EmbeddingModel
+
+# Import pypdf for PDF processing
+import pypdf
+
+# Simple PDF loader function
+def load_pdf_text(file_path: str) -> List[str]:
+    """Load text from PDF file using pypdf."""
+    try:
+        with open(file_path, 'rb') as file:
+            pdf_reader = pypdf.PdfReader(file)
+            pages = []
+            for page in pdf_reader.pages:
+                text = page.extract_text()
+                if text.strip():
+                    pages.append(text)
+            return pages
+    except Exception as e:
+        raise Exception(f"Error reading PDF: {str(e)}")
 
 # Initialize FastAPI application
 app = FastAPI(title="PDF RAG Chat API")
@@ -79,12 +97,11 @@ async def upload_pdf(file: UploadFile = File(...), api_key: str = Form(...)):
         embedding_model = EmbeddingModel()
         
         # Load and process PDF
-        pdf_loader = PDFLoader(uploaded_pdf_path)
-        pdf_loader.load_file()
+        pdf_pages = load_pdf_text(uploaded_pdf_path)
         
         # Split text into chunks
         text_splitter = CharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
-        chunks = text_splitter.split_texts(pdf_loader.documents)
+        chunks = text_splitter.split_texts(pdf_pages)
         
         # Create vector database
         vector_db = VectorDatabase(embedding_model)
