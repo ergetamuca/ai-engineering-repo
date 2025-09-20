@@ -1,7 +1,7 @@
 from pathlib import Path
 from typing import Iterable, List
 
-import PyPDF2
+import pypdf
 
 
 class TextFileLoader:
@@ -127,7 +127,7 @@ class PDFLoader:
 
     def _read_pdf(self, file_path: Path) -> str:
         with file_path.open("rb") as file_handle:
-            pdf_reader = PyPDF2.PdfReader(file_handle)
+            pdf_reader = pypdf.PdfReader(file_handle)
             extracted_pages = [page.extract_text() or "" for page in pdf_reader.pages]
         return "\n".join(extracted_pages)
 

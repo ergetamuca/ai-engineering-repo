@@ -2,7 +2,7 @@ import os
 from typing import Any, AsyncIterator, Iterable, List, MutableMapping
 
 from dotenv import load_dotenv
-from openai import AsyncOpenAI, OpenAI
+from openai import OpenAI
 
 load_dotenv()
 
@@ -19,7 +19,6 @@ class ChatOpenAI:
             raise ValueError("OPENAI_API_KEY is not set")
 
         self._client = OpenAI()
-        self._async_client = AsyncOpenAI()
 
     def run(
         self,

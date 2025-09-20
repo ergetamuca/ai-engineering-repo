@@ -3,7 +3,7 @@ import os
 from typing import Iterable, List
 
 from dotenv import load_dotenv
-from openai import AsyncOpenAI, OpenAI
+from openai import OpenAI
 
 
 class EmbeddingModel:
@@ -19,7 +19,6 @@ class EmbeddingModel:
             )
 
         self.embeddings_model_name = embeddings_model_name
-        self.async_client = AsyncOpenAI()
         self.client = OpenAI()
 
     async def async_get_embeddings(self, list_of_text: Iterable[str]) -> List[List[float]]:
