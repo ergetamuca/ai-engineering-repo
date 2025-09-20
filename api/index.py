@@ -11,6 +11,10 @@ from typing import Optional, List, Dict, Any
 import pypdf
 import csv
 import io
+import re
+
+# Import aimakerspace library
+from aimakerspace import VectorDatabase, CharacterTextSplitter, ChatOpenAI, EmbeddingModel
 
 # Initialize FastAPI application
 app = FastAPI(title="Legal Discovery AI Assistant")
@@ -25,10 +29,10 @@ app.add_middleware(
 )
 
 # Global variables for RAG system
-vector_db = None
-chat_model = None
-uploaded_documents = []  # Store both PDFs and images
-document_metadata = {}  # Store metadata for each document
+vector_db: Optional[VectorDatabase] = None
+chat_model: Optional[ChatOpenAI] = None
+uploaded_documents: List[Dict[str, Any]] = []  # Store both PDFs and CSVs
+document_metadata: Dict[str, Dict[str, Any]] = {}  # Store metadata for each document
 
 # Data models
 class ChatRequest(BaseModel):
@@ -174,34 +178,7 @@ def analyze_legal_document(content: str, doc_type: str) -> Dict[str, Any]:
     
     return analysis
 
-# Simple text splitter
-def split_text(text: str, chunk_size: int = 1000, chunk_overlap: int = 200) -> List[str]:
-    """Split text into chunks."""
-    chunks = []
-    for i in range(0, len(text), chunk_size - chunk_overlap):
-        chunk = text[i:i + chunk_size]
-        if chunk.strip():
-            chunks.append(chunk)
-    return chunks
 
-# Simple vector search (without embeddings for now)
-def search_chunks(chunks: List[str], query: str, k: int = 3) -> List[str]:
-    """Simple keyword-based search."""
-    query_lower = query.lower()
-    scored_chunks = []
-    
-    for chunk in chunks:
-        score = 0
-        chunk_lower = chunk.lower()
-        # Simple keyword matching
-        for word in query_lower.split():
-            if word in chunk_lower:
-                score += 1
-        scored_chunks.append((chunk, score))
-    
-    # Sort by score and return top k
-    scored_chunks.sort(key=lambda x: x[1], reverse=True)
-    return [chunk for chunk, score in scored_chunks[:k] if score > 0]
 
 # Health check endpoint
 @app.get("/api/health")
@@ -260,9 +237,6 @@ async def upload_document(file: UploadFile = File(...), api_key: str = Form(...)
             document_type = "csv"
             analysis = analyze_legal_document(full_text, "csv")
         
-        # Split text into chunks
-        chunks = split_text(full_text)
-        
         # Create document ID
         import uuid
         doc_id = str(uuid.uuid4())
@@ -270,6 +244,16 @@ async def upload_document(file: UploadFile = File(...), api_key: str = Form(...)
         # Clear previous documents and store new document data
         uploaded_documents.clear()
         document_metadata.clear()
+        
+        # Initialize aimakerspace components
+        text_splitter = CharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
+        embedding_model = EmbeddingModel()
+        vector_db = VectorDatabase(embedding_model=embedding_model)
+        chat_model = ChatOpenAI()
+        
+        # Split text into chunks and add to vector database
+        chunks = text_splitter.split_text(full_text)
+        vector_db.add_documents(chunks)
         
         document_data = {
             "id": doc_id,
@@ -283,12 +267,6 @@ async def upload_document(file: UploadFile = File(...), api_key: str = Form(...)
         
         uploaded_documents.append(document_data)
         document_metadata[doc_id] = document_data
-        
-        # Update global search index with only the new document
-        vector_db = chunks
-        
-        # Initialize chat model
-        chat_model = OpenAI()
         
         # Clean up temp file
         os.unlink(temp_file_path)
@@ -399,8 +377,8 @@ async def rag_chat(request: RAGChatRequest):
         # Set API key
         os.environ["OPENAI_API_KEY"] = request.api_key
         
-        # Search for relevant chunks
-        relevant_chunks = search_chunks(vector_db, request.user_message, k=3)
+        # Search for relevant chunks using aimakerspace vector database
+        relevant_chunks = vector_db.search(request.user_message, k=3)
         
         # Create context from relevant chunks
         context = "\n\n".join(relevant_chunks)
