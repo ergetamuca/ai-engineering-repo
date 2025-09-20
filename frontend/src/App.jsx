@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react'
-import { Upload, FileText, MessageCircle, Send, Loader, BookOpen, FileImage } from 'lucide-react'
+import { Upload, FileText, MessageCircle, Send, Loader, BookOpen, FileSpreadsheet } from 'lucide-react'
 import axios from 'axios'
 
 function App() {
@@ -28,10 +28,10 @@ function App() {
 
   const handleFileSelect = (file) => {
     const fileExtension = file.name.toLowerCase().split('.').pop()
-    const allowedTypes = ['pdf', 'jpg', 'jpeg', 'png', 'gif', 'bmp', 'tiff']
+    const allowedTypes = ['pdf', 'csv']
     
     if (file && allowedTypes.includes(fileExtension)) {
-      // Check file size (10MB for images, 4MB for PDFs)
+      // Check file size (10MB for CSV, 4MB for PDFs)
       const MAX_FILE_SIZE = fileExtension === 'pdf' ? 4 * 1024 * 1024 : 10 * 1024 * 1024
       if (file.size > MAX_FILE_SIZE) {
         alert(`File too large. Maximum size is ${MAX_FILE_SIZE / (1024*1024)}MB. Your file is ${(file.size / (1024*1024)).toFixed(1)}MB`)
@@ -39,7 +39,7 @@ function App() {
       }
       setDocumentFile(file)
     } else {
-      alert('Please select a PDF or image file (JPG, PNG, GIF, BMP, TIFF)')
+      alert('Please select a PDF or CSV file')
     }
   }
 
@@ -221,7 +221,7 @@ function App() {
           </div>
           <div className="header-text">
             <h1>Document AI Assistant</h1>
-            <p>Upload documents and images for intelligent analysis and chat</p>
+            <p>Upload documents and CSV files for intelligent analysis and chat</p>
           </div>
         </div>
         <div className="header-features">
@@ -230,8 +230,8 @@ function App() {
             <span>PDF Analysis</span>
           </div>
           <div className="feature-tag">
-            <FileImage size={16} />
-            <span>Image Processing</span>
+            <FileSpreadsheet size={16} />
+            <span>CSV Processing</span>
           </div>
           <div className="feature-tag">
             <MessageCircle size={16} />
@@ -265,21 +265,21 @@ function App() {
             >
               <div className="upload-icons">
                 <FileText size={32} />
-                <FileImage size={32} />
+                <FileSpreadsheet size={32} />
               </div>
               <div className="upload-text">
                 {documentFile ? documentFile.name : 'Click to upload or drag and drop'}
               </div>
               <div className="upload-subtext">
-                PDFs (max 4MB) or Images (max 10MB)
+                PDFs (max 4MB) or CSV files (max 10MB)
               </div>
               <div className="supported-formats">
-                Supported: PDF, JPG, PNG, GIF, BMP, TIFF
+                Supported: PDF, CSV
               </div>
               <input
                 ref={fileInputRef}
                 type="file"
-                accept=".pdf,.jpg,.jpeg,.png,.gif,.bmp,.tiff"
+                accept=".pdf,.csv"
                 onChange={handleFileInputChange}
                 className="file-input"
               />
@@ -318,7 +318,7 @@ function App() {
                   <div key={doc.id || index} className="document-item">
                     <div className="document-info">
                       <div className="document-type">
-                        {doc.type === 'pdf' ? <FileText size={16} /> : <FileImage size={16} />}
+                        {doc.type === 'pdf' ? <FileText size={16} /> : <FileSpreadsheet size={16} />}
                         <span>{doc.filename}</span>
                       </div>
                       {doc.case_numbers.length > 0 && (

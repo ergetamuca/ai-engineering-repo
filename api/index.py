@@ -9,7 +9,7 @@ import shutil
 import base64
 from typing import Optional, List, Dict, Any
 import pypdf
-from PIL import Image
+import pandas as pd
 import io
 
 # Initialize FastAPI application
@@ -69,34 +69,45 @@ def load_pdf_text(file_path: str) -> List[str]:
     except Exception as e:
         raise Exception(f"Error reading PDF: {str(e)}")
 
-# Image processing function
-def process_image(file_path: str, api_key: str) -> Dict[str, Any]:
-    """Process image and extract text using OpenAI Vision API."""
+# CSV processing function
+def process_csv(file_path: str, api_key: str) -> Dict[str, Any]:
+    """Process CSV file and extract structured data for legal analysis."""
     try:
+        # Read CSV file
+        df = pd.read_csv(file_path)
+        
+        # Get basic CSV information
+        csv_info = {
+            "rows": len(df),
+            "columns": len(df.columns),
+            "column_names": df.columns.tolist(),
+            "data_types": df.dtypes.to_dict(),
+            "sample_data": df.head(3).to_dict('records') if len(df) > 0 else []
+        }
+        
+        # Convert DataFrame to text for analysis
+        csv_text = f"CSV Data Summary:\n"
+        csv_text += f"Rows: {csv_info['rows']}, Columns: {csv_info['columns']}\n"
+        csv_text += f"Column Names: {', '.join(csv_info['column_names'])}\n\n"
+        
+        # Add sample data
+        if csv_info['sample_data']:
+            csv_text += "Sample Data:\n"
+            for i, row in enumerate(csv_info['sample_data']):
+                csv_text += f"Row {i+1}: {row}\n"
+        
+        # Add full data as text for RAG
+        csv_text += "\nFull Data:\n"
+        csv_text += df.to_string(index=False)
+        
+        # Use OpenAI to analyze the CSV content
         client = OpenAI(api_key=api_key)
-        
-        # Read and encode image
-        with open(file_path, 'rb') as image_file:
-            base64_image = base64.b64encode(image_file.read()).decode('utf-8')
-        
-        # Use OpenAI Vision API to analyze image
         response = client.chat.completions.create(
             model="gpt-4o",
             messages=[
                 {
                     "role": "user",
-                    "content": [
-                        {
-                            "type": "text",
-                            "text": "Analyze this legal document image. Extract all text content, identify key legal terms, dates, names, case numbers, and any visual elements that might be relevant for legal discovery. Provide a detailed description of the document structure and content."
-                        },
-                        {
-                            "type": "image_url",
-                            "image_url": {
-                                "url": f"data:image/jpeg;base64,{base64_image}"
-                            }
-                        }
-                    ]
+                    "content": f"Analyze this CSV data for legal discovery purposes. Identify key information, patterns, relationships, and any data that might be relevant for legal proceedings. Focus on:\n1. Key entities (names, companies, dates, amounts)\n2. Data patterns and relationships\n3. Potential evidence or inconsistencies\n4. Legal relevance of the data\n\nCSV Data:\n{csv_text}"
                 }
             ],
             max_tokens=2000
@@ -105,13 +116,14 @@ def process_image(file_path: str, api_key: str) -> Dict[str, Any]:
         analysis = response.choices[0].message.content
         
         return {
-            "text_content": analysis,
-            "document_type": "image",
-            "analysis": analysis
+            "text_content": csv_text,
+            "document_type": "csv",
+            "analysis": analysis,
+            "csv_info": csv_info
         }
         
     except Exception as e:
-        raise Exception(f"Error processing image: {str(e)}")
+        raise Exception(f"Error processing CSV: {str(e)}")
 
 # Legal document analyzer
 def analyze_legal_document(content: str, doc_type: str) -> Dict[str, Any]:
@@ -195,7 +207,7 @@ async def upload_document(file: UploadFile = File(...), api_key: str = Form(...)
     try:
         # Validate file type
         file_extension = file.filename.lower().split('.')[-1]
-        allowed_extensions = ['pdf', 'jpg', 'jpeg', 'png', 'gif', 'bmp', 'tiff']
+        allowed_extensions = ['pdf', 'csv']
         
         if file_extension not in allowed_extensions:
             raise HTTPException(
@@ -203,8 +215,8 @@ async def upload_document(file: UploadFile = File(...), api_key: str = Form(...)
                 detail=f"Unsupported file type. Allowed: {', '.join(allowed_extensions)}"
             )
         
-        # Check file size (10MB limit for images, 4MB for PDFs)
-        MAX_FILE_SIZE = 10 * 1024 * 1024 if file_extension in ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'tiff'] else 4 * 1024 * 1024
+        # Check file size (10MB limit for CSV, 4MB for PDFs)
+        MAX_FILE_SIZE = 10 * 1024 * 1024 if file_extension == 'csv' else 4 * 1024 * 1024
         file_content = await file.read()
         if len(file_content) > MAX_FILE_SIZE:
             raise HTTPException(
@@ -232,11 +244,11 @@ async def upload_document(file: UploadFile = File(...), api_key: str = Form(...)
             document_type = "pdf"
             analysis = analyze_legal_document(full_text, "pdf")
         else:
-            # Process Image
-            image_data = process_image(temp_file_path, api_key)
-            full_text = image_data["text_content"]
-            document_type = "image"
-            analysis = analyze_legal_document(full_text, "image")
+            # Process CSV
+            csv_data = process_csv(temp_file_path, api_key)
+            full_text = csv_data["text_content"]
+            document_type = "csv"
+            analysis = analyze_legal_document(full_text, "csv")
         
         # Split text into chunks
         chunks = split_text(full_text)
