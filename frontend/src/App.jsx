@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react'
-import { Upload, FileText, MessageCircle, Send, Loader, Scale, Search, BookOpen, AlertTriangle, FileImage, Gavel } from 'lucide-react'
+import { Upload, FileText, MessageCircle, Send, Loader, BookOpen, FileImage } from 'lucide-react'
 import axios from 'axios'
 
 function App() {
@@ -11,8 +11,7 @@ function App() {
   const [isUploading, setIsUploading] = useState(false)
   const [isChatting, setIsChatting] = useState(false)
   const [isDragging, setIsDragging] = useState(false)
-  const [analysisType, setAnalysisType] = useState('general')
-  const [chatMode, setChatMode] = useState('general') // general, legal
+  // Removed analysisType and chatMode - using only general chat
   
   const fileInputRef = useRef(null)
   const messagesEndRef = useRef(null)
@@ -134,18 +133,12 @@ function App() {
     setIsChatting(true)
 
     try {
-      // Choose endpoint based on chat mode
-      const endpoint = chatMode === 'legal' ? '/api/legal-analysis' : '/api/rag-chat'
-      const requestBody = chatMode === 'legal' 
-        ? {
-            user_message: userMessage,
-            analysis_type: analysisType,
-            api_key: apiKey
-          }
-        : {
-            user_message: userMessage,
-            api_key: apiKey
-          }
+      // Use general RAG chat endpoint
+      const endpoint = '/api/rag-chat'
+      const requestBody = {
+        user_message: userMessage,
+        api_key: apiKey
+      }
 
       const response = await fetch(endpoint, {
         method: 'POST',
@@ -224,25 +217,25 @@ function App() {
       <div className="header">
         <div className="header-content">
           <div className="header-icon">
-            <Gavel size={48} />
+            <BookOpen size={48} />
           </div>
           <div className="header-text">
-            <h1>Legal Discovery AI Assistant</h1>
-            <p>Upload legal documents and images for intelligent discovery analysis</p>
+            <h1>Document AI Assistant</h1>
+            <p>Upload documents and images for intelligent analysis and chat</p>
           </div>
         </div>
         <div className="header-features">
           <div className="feature-tag">
-            <Scale size={16} />
-            <span>Evidence Analysis</span>
+            <FileText size={16} />
+            <span>PDF Analysis</span>
           </div>
           <div className="feature-tag">
-            <Search size={16} />
-            <span>Relationship Mapping</span>
+            <FileImage size={16} />
+            <span>Image Processing</span>
           </div>
           <div className="feature-tag">
-            <AlertTriangle size={16} />
-            <span>Inconsistency Detection</span>
+            <MessageCircle size={16} />
+            <span>AI Chat</span>
           </div>
         </div>
       </div>
@@ -349,43 +342,7 @@ function App() {
           </div>
         )}
 
-        {/* Chat Mode Controls */}
-        {documentStatus.hasDocuments && (
-          <div className="chat-controls">
-            <div className="mode-selector">
-              <button
-                className={`mode-button ${chatMode === 'general' ? 'active' : ''}`}
-                onClick={() => setChatMode('general')}
-              >
-                <MessageCircle size={16} />
-                General Chat
-              </button>
-              <button
-                className={`mode-button ${chatMode === 'legal' ? 'active' : ''}`}
-                onClick={() => setChatMode('legal')}
-              >
-                <Gavel size={16} />
-                Legal Analysis
-              </button>
-            </div>
-            
-            {chatMode === 'legal' && (
-              <div className="analysis-type-selector">
-                <label>Analysis Type:</label>
-                <select
-                  value={analysisType}
-                  onChange={(e) => setAnalysisType(e.target.value)}
-                  className="analysis-select"
-                >
-                  <option value="general">General Analysis</option>
-                  <option value="relationships">Relationship Analysis</option>
-                  <option value="inconsistencies">Inconsistency Detection</option>
-                  <option value="citations">Citation Analysis</option>
-                </select>
-              </div>
-            )}
-          </div>
-        )}
+        {/* Chat Mode Controls - Removed Legal Analysis tab */}
 
         {/* Chat Section */}
         {documentStatus.hasDocuments && (
@@ -398,23 +355,11 @@ function App() {
                   padding: '40px 20px',
                   fontStyle: 'italic'
                 }}>
-                  {chatMode === 'legal' ? (
-                    <>
-                      <Gavel size={48} style={{ marginBottom: '20px', opacity: 0.5 }} />
-                      <div>Start your legal analysis!</div>
-                      <div style={{ fontSize: '0.9rem', marginTop: '10px' }}>
-                        Ask about evidence, relationships, inconsistencies, or case strategy.
-                      </div>
-                    </>
-                  ) : (
-                    <>
-                      <MessageCircle size={48} style={{ marginBottom: '20px', opacity: 0.5 }} />
-                      <div>Start chatting with your documents!</div>
-                      <div style={{ fontSize: '0.9rem', marginTop: '10px' }}>
-                        Ask questions about the content of your uploaded documents.
-                      </div>
-                    </>
-                  )}
+                  <MessageCircle size={48} style={{ marginBottom: '20px', opacity: 0.5 }} />
+                  <div>Start chatting with your documents!</div>
+                  <div style={{ fontSize: '0.9rem', marginTop: '10px' }}>
+                    Ask questions about the content of your uploaded documents.
+                  </div>
                 </div>
               ) : (
                 messages.map((message, index) => (
@@ -431,10 +376,7 @@ function App() {
               <input
                 type="text"
                 className="chat-input"
-                placeholder={chatMode === 'legal' 
-                  ? "Ask about evidence, relationships, or case strategy..." 
-                  : "Ask a question about your documents..."
-                }
+                placeholder="Ask a question about your documents..."
                 value={currentMessage}
                 onChange={(e) => setCurrentMessage(e.target.value)}
                 onKeyPress={handleKeyPress}
