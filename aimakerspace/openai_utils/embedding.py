@@ -9,9 +9,9 @@ from openai import OpenAI
 class EmbeddingModel:
     """Helper for generating embeddings via the OpenAI API."""
 
-    def __init__(self, embeddings_model_name: str = "text-embedding-3-small"):
+    def __init__(self, api_key: str = None, embeddings_model_name: str = "text-embedding-3-small"):
         load_dotenv()
-        self.openai_api_key = os.getenv("OPENAI_API_KEY")
+        self.openai_api_key = api_key or os.getenv("OPENAI_API_KEY")
         if self.openai_api_key is None:
             raise ValueError(
                 "OPENAI_API_KEY environment variable is not set. "
@@ -19,21 +19,21 @@ class EmbeddingModel:
             )
 
         self.embeddings_model_name = embeddings_model_name
-        self.client = OpenAI()
+        self.client = OpenAI(api_key=self.openai_api_key)
 
     async def async_get_embeddings(self, list_of_text: Iterable[str]) -> List[List[float]]:
-        """Return embeddings for ``list_of_text`` using the async client."""
+        """Return embeddings for ``list_of_text`` using the sync client."""
 
-        embedding_response = await self.async_client.embeddings.create(
+        embedding_response = self.client.embeddings.create(
             input=list(list_of_text), model=self.embeddings_model_name
         )
 
         return [item.embedding for item in embedding_response.data]
 
     async def async_get_embedding(self, text: str) -> List[float]:
-        """Return an embedding for a single text using the async client."""
+        """Return an embedding for a single text using the sync client."""
 
-        embedding = await self.async_client.embeddings.create(
+        embedding = self.client.embeddings.create(
             input=text, model=self.embeddings_model_name
         )
 

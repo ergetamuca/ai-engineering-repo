@@ -12,13 +12,13 @@ ChatMessage = MutableMapping[str, Any]
 class ChatOpenAI:
     """Thin wrapper around the OpenAI chat completion APIs."""
 
-    def __init__(self, model_name: str = "gpt-4o-mini"):
+    def __init__(self, api_key: str = None, model_name: str = "gpt-4o-mini"):
         self.model_name = model_name
-        self.openai_api_key = os.getenv("OPENAI_API_KEY")
+        self.openai_api_key = api_key or os.getenv("OPENAI_API_KEY")
         if self.openai_api_key is None:
             raise ValueError("OPENAI_API_KEY is not set")
 
-        self._client = OpenAI()
+        self._client = OpenAI(api_key=self.openai_api_key)
 
     def run(
         self,
@@ -50,11 +50,11 @@ class ChatOpenAI:
         """Yield streaming completion chunks as they arrive from the API."""
 
         message_list = self._coerce_messages(messages)
-        stream = await self._async_client.chat.completions.create(
+        stream = self._client.chat.completions.create(
             model=self.model_name, messages=message_list, stream=True, **kwargs
         )
 
-        async for chunk in stream:
+        for chunk in stream:
             content = chunk.choices[0].delta.content
             if content is not None:
                 yield content

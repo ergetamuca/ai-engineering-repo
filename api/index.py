@@ -17,7 +17,7 @@ import re
 from aimakerspace import VectorDatabase, CharacterTextSplitter, ChatOpenAI, EmbeddingModel
 
 # Initialize FastAPI application
-app = FastAPI(title="Legal Discovery AI Assistant")
+app = FastAPI(title="Legal Discovery AI Assistant")  # Updated with aimakerspace integration
 
 # Configure CORS
 app.add_middleware(
@@ -247,13 +247,14 @@ async def upload_document(file: UploadFile = File(...), api_key: str = Form(...)
         
         # Initialize aimakerspace components
         text_splitter = CharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
-        embedding_model = EmbeddingModel()
+        embedding_model = EmbeddingModel(api_key=api_key)
         vector_db = VectorDatabase(embedding_model=embedding_model)
-        chat_model = ChatOpenAI()
+        chat_model = ChatOpenAI(api_key=api_key)
         
         # Split text into chunks and add to vector database
-        chunks = text_splitter.split_text(full_text)
-        vector_db.add_documents(chunks)
+        chunks = text_splitter.split(full_text)
+        # Use await since we're already in an async function
+        vector_db = await vector_db.abuild_from_list(chunks)
         
         document_data = {
             "id": doc_id,
@@ -378,7 +379,7 @@ async def rag_chat(request: RAGChatRequest):
         os.environ["OPENAI_API_KEY"] = request.api_key
         
         # Search for relevant chunks using aimakerspace vector database
-        relevant_chunks = vector_db.search(request.user_message, k=3)
+        relevant_chunks = vector_db.search_by_text(request.user_message, k=3, return_as_text=True)
         
         # Create context from relevant chunks
         context = "\n\n".join(relevant_chunks)
@@ -403,15 +404,8 @@ USER QUESTION: {request.user_message}"""
         
         # Create an async generator function for streaming responses
         async def generate():
-            stream = chat_model.chat.completions.create(
-                model=request.model,
-                messages=messages,
-                stream=True
-            )
-            
-            for chunk in stream:
-                if chunk.choices[0].delta.content is not None:
-                    yield chunk.choices[0].delta.content
+            async for chunk in chat_model.astream(messages):
+                yield chunk
 
         # Return a streaming response to the client
         return StreamingResponse(generate(), media_type="text/plain")
