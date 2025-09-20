@@ -1,76 +1,122 @@
-# OpenAI Chat API Backend
+# Document AI Assistant API
 
-This is a FastAPI-based backend service that provides a streaming chat interface using OpenAI's API.
+FastAPI backend for the Document AI Assistant application.
 
-## Prerequisites
+## 🚀 Features
 
-- Python 3.8 or higher
-- pip (Python package manager)
-- An OpenAI API key
+- **PDF Processing**: Extract text from PDF documents using pypdf
+- **CSV Analysis**: Parse and analyze CSV files for legal discovery
+- **AI Integration**: OpenAI GPT-4 for document analysis and chat
+- **Legal Focus**: Specialized prompts for legal document analysis
+- **Real-time Streaming**: Streaming responses for better UX
 
-## Setup
-
-1. Create a virtual environment (recommended):
-```bash
-python -m venv venv
-source venv/bin/activate  # On Windows, use: venv\Scripts\activate
-```
-
-2. Install the required dependencies:
-```bash
-pip install fastapi uvicorn openai pydantic
-```
-
-## Running the Server
-
-1. Make sure you're in the `api` directory:
-```bash
-cd api
-```
-
-2. Start the server:
-```bash
-python app.py
-```
-
-The server will start on `http://localhost:8000`
-
-## API Endpoints
-
-### Chat Endpoint
-- **URL**: `/api/chat`
-- **Method**: POST
-- **Request Body**:
-```json
-{
-    "developer_message": "string",
-    "user_message": "string",
-    "model": "gpt-4.1-mini",  // optional
-    "api_key": "your-openai-api-key"
-}
-```
-- **Response**: Streaming text response
+## 📋 API Endpoints
 
 ### Health Check
-- **URL**: `/api/health`
-- **Method**: GET
-- **Response**: `{"status": "ok"}`
+```
+GET /api/health
+```
+Returns API status.
 
-## API Documentation
+### Document Status
+```
+GET /api/document-status
+```
+Returns information about uploaded documents.
 
-Once the server is running, you can access the interactive API documentation at:
-- Swagger UI: `http://localhost:8000/docs`
-- ReDoc: `http://localhost:8000/redoc`
+### Upload Document
+```
+POST /api/upload-document
+```
+Upload PDF or CSV files for analysis.
 
-## CORS Configuration
+**Parameters:**
+- `file`: PDF or CSV file (multipart/form-data)
+- `api_key`: OpenAI API key (form data)
 
-The API is configured to accept requests from any origin (`*`). This can be modified in the `app.py` file if you need to restrict access to specific domains.
+**Response:**
+```json
+{
+  "message": "Document uploaded and processed successfully",
+  "success": true,
+  "document_name": "example.pdf",
+  "document_type": "pdf",
+  "document_id": "uuid",
+  "analysis": {
+    "case_numbers": ["Case-123"],
+    "dates": ["2023-01-01"]
+  }
+}
+```
 
-## Error Handling
+### Chat with Documents
+```
+POST /api/rag-chat
+```
+Chat with uploaded documents using RAG (Retrieval-Augmented Generation).
 
-The API includes basic error handling for:
-- Invalid API keys
-- OpenAI API errors
-- General server errors
+**Request Body:**
+```json
+{
+  "user_message": "What is this document about?",
+  "api_key": "your-openai-api-key"
+}
+```
 
-All errors will return a 500 status code with an error message. 
+**Response:** Streaming text response
+
+## 🛠️ Dependencies
+
+- `fastapi==0.115.12` - Web framework
+- `uvicorn==0.34.2` - ASGI server
+- `openai==1.77.0` - OpenAI API client
+- `pydantic==2.11.4` - Data validation
+- `python-multipart==0.0.18` - File upload support
+- `pypdf==4.0.1` - PDF text extraction
+- `python-dotenv==1.0.0` - Environment variables
+
+## 🚀 Running Locally
+
+1. Install dependencies:
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+2. Set environment variables:
+   ```bash
+   export OPENAI_API_KEY="your-api-key"
+   ```
+
+3. Run the server:
+   ```bash
+   uvicorn index:app --reload
+   ```
+
+4. API will be available at `http://localhost:8000`
+
+## 📊 Document Processing
+
+### PDF Processing
+- Extracts text from all pages
+- Splits into chunks for RAG
+- Analyzes for legal terms, case numbers, dates
+
+### CSV Processing
+- Parses CSV structure and data
+- Converts to text format for analysis
+- Identifies patterns and relationships
+- Focuses on legal relevance
+
+## 🔧 Configuration
+
+- **File Size Limits**: PDF (4MB), CSV (10MB)
+- **Chunk Size**: 1000 characters with 200 overlap
+- **AI Model**: GPT-4o for analysis, GPT-4o-mini for chat
+- **Max Tokens**: 2000 for analysis responses
+
+## 🚨 Error Handling
+
+- File type validation
+- Size limit enforcement
+- API key validation
+- Graceful error responses with helpful messages

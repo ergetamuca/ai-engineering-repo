@@ -1,97 +1,165 @@
-# PDF RAG Chat Frontend
+# Document AI Assistant Frontend
 
-A modern React application for chatting with PDF documents using AI-powered RAG (Retrieval-Augmented Generation).
+React frontend for the Document AI Assistant application.
 
-## Features
+## 🚀 Features
 
-- **PDF Upload**: Drag-and-drop or click to upload PDF files
-- **Real-time Chat**: Stream responses from AI based on PDF content
-- **Modern UI**: Beautiful, responsive design with gradient backgrounds
-- **API Key Management**: Secure OpenAI API key input
-- **Status Indicators**: Real-time feedback on PDF processing and chat status
+- **Modern UI**: Clean, professional interface with legal theme
+- **Drag & Drop**: Easy file upload with visual feedback
+- **Real-time Chat**: Streaming AI responses
+- **File Validation**: Client-side size and type checking
+- **Responsive Design**: Works on desktop and mobile
+- **Legal Focus**: Specialized for legal document analysis
 
-## Prerequisites
+## 🛠️ Technology Stack
 
-- Node.js 16+ and npm
-- OpenAI API key
-- Backend API running on port 8000
+- **React 18**: Modern React with hooks
+- **Vite**: Fast build tool and dev server
+- **Axios**: HTTP client for API communication
+- **Lucide React**: Beautiful, consistent icons
+- **CSS3**: Modern styling with gradients and animations
 
-## Installation
+## 📦 Dependencies
 
-1. Navigate to the frontend directory:
-   ```bash
-   cd frontend
-   ```
+```json
+{
+  "react": "^18.2.0",
+  "react-dom": "^18.2.0",
+  "axios": "^1.6.0",
+  "lucide-react": "^0.263.1"
+}
+```
 
-2. Install dependencies:
+## 🚀 Development
+
+### Prerequisites
+- Node.js 18+
+- npm or yarn
+
+### Setup
+1. Install dependencies:
    ```bash
    npm install
    ```
 
-## Development
+2. Start development server:
+   ```bash
+   npm run dev
+   ```
 
-Start the development server:
-```bash
-npm run dev
-```
+3. Open `http://localhost:5173` in your browser
 
-The application will be available at `http://localhost:3000`
-
-## Building for Production
-
-Build the application:
+### Build for Production
 ```bash
 npm run build
 ```
 
-Preview the production build:
+### Vercel Build
 ```bash
-npm run preview
+npm run vercel-build
 ```
 
-## Usage
+## 📁 Project Structure
 
-1. **Enter API Key**: Input your OpenAI API key in the provided field
-2. **Upload PDF**: Drag and drop a PDF file or click to select one
-3. **Wait for Processing**: The system will extract text and create embeddings
-4. **Start Chatting**: Ask questions about your PDF content
-5. **Get AI Responses**: Receive context-aware answers based on your PDF
+```
+frontend/
+├── src/
+│   ├── App.jsx          # Main application component
+│   ├── main.jsx         # React entry point
+│   └── index.css        # Global styles
+├── index.html           # HTML template
+├── package.json         # Dependencies and scripts
+├── vite.config.js       # Vite configuration
+└── README.md           # This file
+```
 
-## Technical Details
+## 🎨 UI Components
 
-- **Framework**: React 18 with Vite
-- **Styling**: Custom CSS with modern gradients and animations
-- **HTTP Client**: Axios for API communication
-- **Icons**: Lucide React for consistent iconography
-- **State Management**: React hooks for local state
-- **Streaming**: Real-time message streaming from backend
+### Header
+- Application title and description
+- Feature tags (PDF Analysis, CSV Processing, AI Chat)
+- Professional legal theme with blue/gold colors
 
-## API Integration
+### Upload Section
+- Drag and drop file upload
+- File type validation (PDF, CSV)
+- Size limit indicators
+- Visual feedback for file selection
 
-The frontend communicates with the backend through these endpoints:
-- `POST /api/upload-pdf` - Upload and process PDF
-- `POST /api/rag-chat` - Chat with processed PDF
-- `GET /api/pdf-status` - Check PDF processing status
+### Document Status
+- Shows uploaded document information
+- Displays extracted metadata (case numbers, dates)
+- Document type indicators with icons
 
-## Browser Support
+### Chat Interface
+- Real-time streaming responses
+- Message history
+- Loading states and error handling
+- Professional legal-themed styling
+
+## 🔧 Configuration
+
+### File Upload
+- **PDF**: Maximum 4MB
+- **CSV**: Maximum 10MB
+- **Supported Types**: PDF, CSV
+- **Validation**: Client-side and server-side
+
+### API Integration
+- Base URL: Configured for Vercel deployment
+- Endpoints: `/api/upload-document`, `/api/rag-chat`, `/api/document-status`
+- Error Handling: User-friendly error messages
+
+## 🎯 Features
+
+### Document Upload
+- Drag and drop interface
+- Click to browse files
+- Real-time file validation
+- Progress indicators
+
+### Chat Interface
+- Streaming AI responses
+- Message history
+- Context-aware prompts
+- Legal-focused analysis
+
+### Responsive Design
+- Mobile-friendly layout
+- Adaptive components
+- Touch-friendly interactions
+- Cross-browser compatibility
+
+## 🚨 Error Handling
+
+- File size validation with clear messages
+- File type validation
+- Network error handling
+- API error display
+- Graceful fallbacks
+
+## 🎨 Styling
+
+- **Color Scheme**: Professional blue and gold legal theme
+- **Typography**: Clean, readable fonts
+- **Animations**: Smooth transitions and hover effects
+- **Icons**: Consistent Lucide React icons
+- **Layout**: Responsive grid and flexbox
+
+## 🔧 Development Scripts
+
+- `npm run dev` - Start development server
+- `npm run build` - Build for production
+- `npm run vercel-build` - Build for Vercel deployment
+- `npm run preview` - Preview production build
+
+## 📱 Browser Support
 
 - Chrome 90+
 - Firefox 88+
 - Safari 14+
 - Edge 90+
 
-## Troubleshooting
+## 🚀 Deployment
 
-### Common Issues
-
-1. **API Key Error**: Ensure your OpenAI API key is valid and has sufficient credits
-2. **PDF Upload Fails**: Check that the file is a valid PDF and under 10MB
-3. **Chat Not Working**: Verify the backend is running and PDF was processed successfully
-4. **CORS Issues**: Ensure the backend CORS settings allow requests from localhost:3000
-
-### Development Tips
-
-- Use browser dev tools to inspect network requests
-- Check the console for error messages
-- Verify API responses in the Network tab
-- Test with different PDF files to ensure compatibility
+The frontend is automatically deployed to Vercel when changes are pushed to the main branch. The build process uses Vite for optimal performance and modern JavaScript features.
