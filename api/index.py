@@ -245,7 +245,10 @@ async def upload_document(file: UploadFile = File(...), api_key: str = Form(...)
         import uuid
         doc_id = str(uuid.uuid4())
         
-        # Store document data
+        # Clear previous documents and store new document data
+        uploaded_documents.clear()
+        document_metadata.clear()
+        
         document_data = {
             "id": doc_id,
             "filename": file.filename,
@@ -259,11 +262,8 @@ async def upload_document(file: UploadFile = File(...), api_key: str = Form(...)
         uploaded_documents.append(document_data)
         document_metadata[doc_id] = document_data
         
-        # Update global search index
-        all_chunks = []
-        for doc in uploaded_documents:
-            all_chunks.extend(doc["chunks"])
-        vector_db = all_chunks
+        # Update global search index with only the new document
+        vector_db = chunks
         
         # Initialize chat model
         chat_model = OpenAI()
@@ -434,7 +434,7 @@ async def get_document_status():
     
     return {
         "has_documents": True, 
-        "message": f"{len(uploaded_documents)} document(s) ready for analysis",
+        "message": f"Document ready for analysis: {uploaded_documents[0]['filename']}",
         "document_count": len(uploaded_documents),
         "documents": [
             {

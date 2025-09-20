@@ -22,19 +22,10 @@ function App() {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages])
 
-  // Check document status on component mount
+  // Initialize with empty document status (no persistence on refresh)
   useEffect(() => {
-    checkDocumentStatus()
+    setDocumentStatus({ hasDocuments: false, message: '', documentCount: 0, documents: [] })
   }, [])
-
-  const checkDocumentStatus = async () => {
-    try {
-      const response = await axios.get('/api/document-status')
-      setDocumentStatus(response.data)
-    } catch (error) {
-      console.error('Error checking document status:', error)
-    }
-  }
 
   const handleFileSelect = (file) => {
     const fileExtension = file.name.toLowerCase().split('.').pop()
@@ -97,8 +88,8 @@ function App() {
         setDocumentStatus({
           hasDocuments: true,
           message: response.data.message,
-          documentCount: documentStatus.documentCount + 1,
-          documents: [...documentStatus.documents, {
+          documentCount: 1, // Always 1 since we're replacing documents on each upload
+          documents: [{
             id: response.data.document_id,
             filename: response.data.document_name,
             type: response.data.document_type,
@@ -350,6 +341,9 @@ function App() {
                     </div>
                   </div>
                 ))}
+                <div className="document-note">
+                  <small>💡 Uploading a new document will replace the current one</small>
+                </div>
               </div>
             )}
           </div>
