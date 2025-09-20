@@ -1,206 +1,216 @@
-# Merge Instructions for PDF RAG System Feature
+# Legal Discovery AI Assistant - Feature Merge Instructions
 
-This document provides instructions for merging the `feature-pdf-rag-system` branch back to the main branch using both GitHub web interface and GitHub CLI.
+## 🏛️ Feature Summary
 
-## Feature Summary
+This feature transforms the original PDF RAG Chat system into a comprehensive **Legal Discovery AI Assistant** designed specifically for legal professionals. The application now supports both PDF and image document uploads, provides specialized legal analysis capabilities, and offers a professional legal-themed interface.
 
-This feature adds a complete PDF RAG (Retrieval-Augmented Generation) system to the application:
+### Key Features Added:
+- **Multi-format Document Support**: PDFs (max 4MB) and Images (max 10MB) - JPG, PNG, GIF, BMP, TIFF
+- **OpenAI Vision API Integration**: Advanced image analysis for legal documents
+- **Legal Document Analysis**: Automatic extraction of case numbers, dates, and legal terms
+- **Specialized Chat Modes**: General Chat vs Legal Analysis with different analysis types
+- **Professional Legal UI**: Blue and gold color scheme with legal icons and terminology
+- **Evidence Cross-referencing**: Document metadata tracking and citation management
+- **Multiple Analysis Types**: General, Relationship, Inconsistency Detection, and Citation Analysis
 
-### Backend Changes
-- **Enhanced API endpoints** in `/api/app.py`:
-  - `POST /api/upload-pdf` - Upload and process PDF files
-  - `POST /api/rag-chat` - Chat with uploaded PDF using RAG
-  - `GET /api/pdf-status` - Check PDF upload status
-- **New dependencies** in `/api/requirements.txt`:
-  - PyPDF2 for PDF processing
-  - python-dotenv for environment variables
-  - numpy for vector operations
-- **RAG system integration** using the `aimakerspace` library:
-  - PDF text extraction and chunking
-  - Vector database for semantic search
-  - OpenAI embeddings and chat completion
+### Technical Improvements:
+- Enhanced backend API with new endpoints (`/api/upload-document`, `/api/legal-analysis`)
+- Legal document processing with regex-based extraction
+- Improved error handling and file validation
+- Professional legal-themed frontend with mode controls
+- Document status tracking and metadata display
 
-### Frontend Changes
-- **Complete React application** in `/frontend/`:
-  - Modern, responsive UI with drag-and-drop PDF upload
-  - Real-time chat interface with streaming responses
-  - API key management
-  - PDF status indicators
-- **New dependencies** in `/frontend/package.json`:
-  - React 18 with Vite build system
-  - Axios for API communication
-  - Lucide React for icons
+---
 
-## GitHub Web Interface Route
+## 🚀 GitHub Web Interface Route
 
 ### Step 1: Create Pull Request
-1. Navigate to your repository on GitHub
-2. Click the "Compare & pull request" button for the `feature-pdf-rag-system` branch
-3. Or go to: `https://github.com/[your-username]/[your-repo]/compare/main...feature-pdf-rag-system`
+1. Go to the repository: `https://github.com/[username]/ai-engineering-repo`
+2. Click **"Pull requests"** tab
+3. Click **"New pull request"**
+4. Select base branch: `main` ← compare branch: `feature-legal-discovery-app`
 
-### Step 2: Configure Pull Request
-1. **Title**: `Add PDF RAG Chat System`
-2. **Description**: 
-   ```markdown
-   ## PDF RAG Chat System Implementation
-   
-   This PR adds a complete PDF RAG system allowing users to upload PDFs and chat with them using AI.
-   
-   ### Features Added
-   - PDF upload and processing with text extraction
-   - Vector database for semantic search using aimakerspace library
-   - Real-time chat interface with streaming responses
-   - Modern React frontend with drag-and-drop upload
-   - OpenAI API integration for embeddings and chat completion
-   
-   ### Technical Details
-   - Backend: FastAPI with new endpoints for PDF processing and RAG chat
-   - Frontend: React 18 with Vite, modern UI components
-   - Dependencies: PyPDF2, numpy, python-dotenv for backend; React ecosystem for frontend
-   
-   ### Testing
-   - [ ] Backend API endpoints tested
-   - [ ] Frontend upload and chat functionality tested
-   - [ ] PDF processing and vector search verified
-   - [ ] Error handling implemented
-   ```
+### Step 2: PR Title and Description
+**Title:** `feat: Legal Discovery AI Assistant with Multi-format Document Support`
+
+**Description:**
+```markdown
+## 🏛️ Legal Discovery AI Assistant
+
+### Overview
+Transforms the PDF RAG system into a comprehensive legal discovery tool for attorneys and legal professionals.
+
+### ✨ New Features
+- **Multi-format Support**: PDFs and Images (JPG, PNG, GIF, BMP, TIFF)
+- **Legal Analysis**: Specialized prompts for evidence analysis and case strategy
+- **Document Intelligence**: Automatic extraction of case numbers, dates, legal terms
+- **Professional UI**: Legal-themed interface with mode controls
+- **Evidence Tracking**: Cross-reference documents and citations
+
+### 🔧 Technical Changes
+- Added OpenAI Vision API for image processing
+- Enhanced RAG system with legal document analysis
+- New API endpoints for document management
+- Professional legal UI with chat mode controls
+- Improved file validation and error handling
+
+### 📁 Files Changed
+- `api/index.py` - Enhanced backend with legal analysis
+- `api/requirements.txt` - Added Pillow for image processing
+- `frontend/src/App.jsx` - Legal-themed UI with mode controls
+- `frontend/src/index.css` - Professional legal styling
+- `vercel.json` - Updated configuration
+
+### 🧪 Testing
+- [x] PDF upload and processing
+- [x] Image upload and analysis
+- [x] Legal analysis modes
+- [x] Document metadata extraction
+- [x] Vercel deployment successful
+
+### 🎯 Ready for Review
+This feature is production-ready and deployed to Vercel.
+```
 
 ### Step 3: Review and Merge
-1. Review the changes in the "Files changed" tab
-2. Ensure all checks pass (if CI/CD is configured)
-3. Click "Merge pull request"
-4. Choose "Create a merge commit" for better history tracking
-5. Click "Confirm merge"
-6. Delete the feature branch after merging
+1. Request review from team members
+2. Address any feedback
+3. Once approved, click **"Merge pull request"**
+4. Choose **"Create a merge commit"**
+5. Click **"Confirm merge"**
+6. Delete the feature branch: `feature-legal-discovery-app`
 
-## GitHub CLI Route
+---
+
+## 💻 GitHub CLI Route
 
 ### Prerequisites
-Ensure you have GitHub CLI installed and authenticated:
 ```bash
-# Install GitHub CLI (if not already installed)
-# macOS
-brew install gh
+# Install GitHub CLI if not already installed
+# macOS: brew install gh
+# Windows: winget install GitHub.cli
+# Linux: curl -fsSL https://cli.github.com/packages/github-keyring.gpg | sudo dd of=/usr/share/keyrings/github-archive-keyring.gpg
 
-# Ubuntu/Debian
-sudo apt install gh
-
-# Windows
-winget install GitHub.cli
-
-# Authenticate
+# Authenticate with GitHub
 gh auth login
+
+# Verify authentication
+gh auth status
 ```
 
 ### Step 1: Create Pull Request
 ```bash
-# Navigate to your repository
+# Navigate to repository root
 cd /Users/ergetamuca/Desktop/ai-engineering-repo
 
 # Create pull request
-gh pr create --title "Add PDF RAG Chat System" --body "## PDF RAG Chat System Implementation
+gh pr create \
+  --title "feat: Legal Discovery AI Assistant with Multi-format Document Support" \
+  --body "## 🏛️ Legal Discovery AI Assistant
 
-This PR adds a complete PDF RAG system allowing users to upload PDFs and chat with them using AI.
+### Overview
+Transforms the PDF RAG system into a comprehensive legal discovery tool for attorneys and legal professionals.
 
-### Features Added
-- PDF upload and processing with text extraction
-- Vector database for semantic search using aimakerspace library
-- Real-time chat interface with streaming responses
-- Modern React frontend with drag-and-drop upload
-- OpenAI API integration for embeddings and chat completion
+### ✨ New Features
+- **Multi-format Support**: PDFs and Images (JPG, PNG, GIF, BMP, TIFF)
+- **Legal Analysis**: Specialized prompts for evidence analysis and case strategy
+- **Document Intelligence**: Automatic extraction of case numbers, dates, legal terms
+- **Professional UI**: Legal-themed interface with mode controls
+- **Evidence Tracking**: Cross-reference documents and citations
 
-### Technical Details
-- Backend: FastAPI with new endpoints for PDF processing and RAG chat
-- Frontend: React 18 with Vite, modern UI components
-- Dependencies: PyPDF2, numpy, python-dotenv for backend; React ecosystem for frontend
+### 🔧 Technical Changes
+- Added OpenAI Vision API for image processing
+- Enhanced RAG system with legal document analysis
+- New API endpoints for document management
+- Professional legal UI with chat mode controls
+- Improved file validation and error handling
 
-### Testing
-- [ ] Backend API endpoints tested
-- [ ] Frontend upload and chat functionality tested
-- [ ] PDF processing and vector search verified
-- [ ] Error handling implemented" --base main --head feature-pdf-rag-system
+### 📁 Files Changed
+- \`api/index.py\` - Enhanced backend with legal analysis
+- \`api/requirements.txt\` - Added Pillow for image processing
+- \`frontend/src/App.jsx\` - Legal-themed UI with mode controls
+- \`frontend/src/index.css\` - Professional legal styling
+- \`vercel.json\` - Updated configuration
+
+### 🧪 Testing
+- [x] PDF upload and processing
+- [x] Image upload and analysis
+- [x] Legal analysis modes
+- [x] Document metadata extraction
+- [x] Vercel deployment successful
+
+### 🎯 Ready for Review
+This feature is production-ready and deployed to Vercel." \
+  --base main \
+  --head feature-legal-discovery-app
 ```
 
 ### Step 2: Review and Merge
 ```bash
-# View the created PR
-gh pr view
-
-# List all PRs to confirm
+# List open pull requests
 gh pr list
 
-# Merge the PR (this will merge and delete the branch)
-gh pr merge --merge --delete-branch
+# View the specific PR (replace PR_NUMBER with actual number)
+gh pr view PR_NUMBER
 
-# Or merge with squash (combines all commits into one)
-# gh pr merge --squash --delete-branch
+# Merge the pull request
+gh pr merge PR_NUMBER --merge --delete-branch
 
-# Or merge with rebase (replays commits on top of main)
-# gh pr merge --rebase --delete-branch
-```
-
-### Step 3: Clean Up Local Branch
-```bash
-# Switch to main branch
+# Verify merge
 git checkout main
-
-# Pull the latest changes
 git pull origin main
-
-# Delete the local feature branch
-git branch -d feature-pdf-rag-system
-
-# Clean up any remote tracking references
-git remote prune origin
 ```
 
-## Post-Merge Verification
-
-After merging, verify the changes:
-
-### 1. Backend Setup
+### Step 3: Cleanup
 ```bash
-cd api
-pip install -r requirements.txt
-python app.py
+# Delete local feature branch
+git branch -d feature-legal-discovery-app
+
+# Verify current branch
+git branch
+
+# Verify latest commit
+git log --oneline -5
 ```
 
-### 2. Frontend Setup
-```bash
-cd frontend
-npm install
-npm run dev
-```
+---
 
-### 3. Test the Application
-1. Open `http://localhost:3000` in your browser
-2. Enter your OpenAI API key
-3. Upload a PDF file
-4. Start chatting with the PDF
+## 🎯 Post-Merge Verification
 
-## Rollback Instructions (if needed)
+After merging, verify the following:
 
-If issues arise after merging:
+1. **Application is Live**: https://the-ai-engineer-challenge-nt5m7sdph-ergetamucas-projects.vercel.app
+2. **API Health Check**: `curl https://the-ai-engineer-challenge-nt5m7sdph-ergetamucas-projects.vercel.app/api/health`
+3. **Document Upload**: Test PDF and image uploads
+4. **Legal Analysis**: Test both general and legal analysis modes
+5. **Document Status**: Verify document metadata extraction
 
-### Quick Rollback
-```bash
-# Revert the merge commit
-git revert -m 1 [merge-commit-hash]
+---
 
-# Or reset to previous commit
-git reset --hard HEAD~1
-```
+## 📋 Feature Checklist
 
-### Selective Rollback
-```bash
-# Revert specific files
-git checkout HEAD~1 -- api/app.py
-git checkout HEAD~1 -- frontend/
-```
+- [x] ✅ Created feature branch: `feature-legal-discovery-app`
+- [x] ✅ Enhanced backend with image processing support
+- [x] ✅ Added legal document analysis capabilities
+- [x] ✅ Updated frontend with professional legal theme
+- [x] ✅ Implemented multi-format document upload
+- [x] ✅ Added specialized legal analysis modes
+- [x] ✅ Enhanced UI with legal terminology and icons
+- [x] ✅ Added document metadata tracking
+- [x] ✅ Tested Vercel deployment
+- [x] ✅ Created comprehensive MERGE.md instructions
+- [ ] 🔄 Ready for PR creation and merge
 
-## Notes
+---
 
-- The feature branch `feature-pdf-rag-system` will be automatically deleted after merging via GitHub CLI
-- If using the web interface, manually delete the branch after merging
-- Ensure all team members are aware of the new dependencies and setup requirements
-- Consider updating the main README.md with setup instructions for the new features
+## 🚨 Important Notes
+
+- **Backward Compatibility**: Original PDF functionality is preserved
+- **File Size Limits**: PDFs (4MB), Images (10MB) for Vercel compatibility
+- **API Key Required**: OpenAI API key needed for image analysis
+- **Production Ready**: Fully deployed and tested on Vercel
+- **Legal Focus**: Designed specifically for legal professionals and discovery workflows
+
+---
+
+*This feature follows the global development branch rule and provides comprehensive merge instructions for both GitHub web interface and CLI workflows.*
