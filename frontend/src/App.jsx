@@ -1,16 +1,18 @@
 import React, { useState, useRef, useEffect } from 'react'
-import { Upload, FileText, MessageCircle, Send, Loader } from 'lucide-react'
+import { Upload, FileText, MessageCircle, Send, Loader, Scale, Search, BookOpen, AlertTriangle, FileImage, Gavel } from 'lucide-react'
 import axios from 'axios'
 
 function App() {
   const [apiKey, setApiKey] = useState('')
-  const [pdfFile, setPdfFile] = useState(null)
-  const [pdfStatus, setPdfStatus] = useState({ hasPdf: false, message: '' })
+  const [documentFile, setDocumentFile] = useState(null)
+  const [documentStatus, setDocumentStatus] = useState({ hasDocuments: false, message: '', documentCount: 0, documents: [] })
   const [messages, setMessages] = useState([])
   const [currentMessage, setCurrentMessage] = useState('')
   const [isUploading, setIsUploading] = useState(false)
   const [isChatting, setIsChatting] = useState(false)
   const [isDragging, setIsDragging] = useState(false)
+  const [analysisType, setAnalysisType] = useState('general')
+  const [chatMode, setChatMode] = useState('general') // general, legal
   
   const fileInputRef = useRef(null)
   const messagesEndRef = useRef(null)
@@ -20,31 +22,34 @@ function App() {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [messages])
 
-  // Check PDF status on component mount
+  // Check document status on component mount
   useEffect(() => {
-    checkPdfStatus()
+    checkDocumentStatus()
   }, [])
 
-  const checkPdfStatus = async () => {
+  const checkDocumentStatus = async () => {
     try {
-      const response = await axios.get('/api/pdf-status')
-      setPdfStatus(response.data)
+      const response = await axios.get('/api/document-status')
+      setDocumentStatus(response.data)
     } catch (error) {
-      console.error('Error checking PDF status:', error)
+      console.error('Error checking document status:', error)
     }
   }
 
   const handleFileSelect = (file) => {
-    if (file && file.type === 'application/pdf') {
-      // Check file size (4MB limit for Vercel)
-      const MAX_FILE_SIZE = 4 * 1024 * 1024 // 4MB
+    const fileExtension = file.name.toLowerCase().split('.').pop()
+    const allowedTypes = ['pdf', 'jpg', 'jpeg', 'png', 'gif', 'bmp', 'tiff']
+    
+    if (file && allowedTypes.includes(fileExtension)) {
+      // Check file size (10MB for images, 4MB for PDFs)
+      const MAX_FILE_SIZE = fileExtension === 'pdf' ? 4 * 1024 * 1024 : 10 * 1024 * 1024
       if (file.size > MAX_FILE_SIZE) {
-        alert(`File too large. Maximum size is 4MB. Your file is ${(file.size / (1024*1024)).toFixed(1)}MB`)
+        alert(`File too large. Maximum size is ${MAX_FILE_SIZE / (1024*1024)}MB. Your file is ${(file.size / (1024*1024)).toFixed(1)}MB`)
         return
       }
-      setPdfFile(file)
+      setDocumentFile(file)
     } else {
-      alert('Please select a PDF file')
+      alert('Please select a PDF or image file (JPG, PNG, GIF, BMP, TIFF)')
     }
   }
 
@@ -71,30 +76,38 @@ function App() {
   }
 
   const handleUpload = async () => {
-    if (!pdfFile || !apiKey) {
-      alert('Please select a PDF file and enter your OpenAI API key')
+    if (!documentFile || !apiKey) {
+      alert('Please select a document file and enter your OpenAI API key')
       return
     }
 
     setIsUploading(true)
     const formData = new FormData()
-    formData.append('file', pdfFile)
+    formData.append('file', documentFile)
     formData.append('api_key', apiKey)
 
     try {
-      const response = await axios.post('/api/upload-pdf', formData, {
+      const response = await axios.post('/api/upload-document', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
       })
 
       if (response.data.success) {
-        setPdfStatus({
-          hasPdf: true,
-          message: response.data.message
+        setDocumentStatus({
+          hasDocuments: true,
+          message: response.data.message,
+          documentCount: documentStatus.documentCount + 1,
+          documents: [...documentStatus.documents, {
+            id: response.data.document_id,
+            filename: response.data.document_name,
+            type: response.data.document_type,
+            case_numbers: response.data.analysis?.case_numbers || [],
+            dates: response.data.analysis?.dates || []
+          }]
         })
         setMessages([]) // Clear previous messages
-        alert('PDF uploaded and processed successfully!')
+        alert(`Document uploaded and processed successfully! Found ${response.data.analysis?.case_numbers?.length || 0} case numbers and ${response.data.analysis?.dates?.length || 0} dates.`)
       }
     } catch (error) {
       console.error('Upload error:', error)
@@ -122,7 +135,7 @@ function App() {
     // Add loading message
     setMessages(prev => [...prev, { 
       type: 'assistant', 
-      content: 'Thinking...',
+      content: 'Analyzing documents...',
       isLoading: true,
       timestamp: new Date()
     }])
@@ -130,15 +143,25 @@ function App() {
     setIsChatting(true)
 
     try {
-      const response = await fetch('/api/rag-chat', {
+      // Choose endpoint based on chat mode
+      const endpoint = chatMode === 'legal' ? '/api/legal-analysis' : '/api/rag-chat'
+      const requestBody = chatMode === 'legal' 
+        ? {
+            user_message: userMessage,
+            analysis_type: analysisType,
+            api_key: apiKey
+          }
+        : {
+            user_message: userMessage,
+            api_key: apiKey
+          }
+
+      const response = await fetch(endpoint, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          user_message: userMessage,
-          api_key: apiKey
-        }),
+        body: JSON.stringify(requestBody),
       })
 
       if (!response.ok) {
@@ -208,8 +231,29 @@ function App() {
   return (
     <div className="container">
       <div className="header">
-        <h1>PDF RAG Chat</h1>
-        <p>Upload a PDF and chat with it using AI</p>
+        <div className="header-content">
+          <div className="header-icon">
+            <Gavel size={48} />
+          </div>
+          <div className="header-text">
+            <h1>Legal Discovery AI Assistant</h1>
+            <p>Upload legal documents and images for intelligent discovery analysis</p>
+          </div>
+        </div>
+        <div className="header-features">
+          <div className="feature-tag">
+            <Scale size={16} />
+            <span>Evidence Analysis</span>
+          </div>
+          <div className="feature-tag">
+            <Search size={16} />
+            <span>Relationship Mapping</span>
+          </div>
+          <div className="feature-tag">
+            <AlertTriangle size={16} />
+            <span>Inconsistency Detection</span>
+          </div>
+        </div>
       </div>
 
       <div className="content">
@@ -225,8 +269,8 @@ function App() {
           />
         </div>
 
-        {/* PDF Upload Section */}
-        {!pdfStatus.hasPdf && (
+        {/* Document Upload Section */}
+        {!documentStatus.hasDocuments && (
           <div className="upload-section">
             <div
               className={`upload-area ${isDragging ? 'dragover' : ''}`}
@@ -235,17 +279,23 @@ function App() {
               onDrop={handleDrop}
               onClick={() => fileInputRef.current?.click()}
             >
-              <Upload className="upload-icon" />
+              <div className="upload-icons">
+                <FileText size={32} />
+                <FileImage size={32} />
+              </div>
               <div className="upload-text">
-                {pdfFile ? pdfFile.name : 'Click to upload or drag and drop'}
+                {documentFile ? documentFile.name : 'Click to upload or drag and drop'}
               </div>
               <div className="upload-subtext">
-                PDF files only (max 4MB)
+                PDFs (max 4MB) or Images (max 10MB)
+              </div>
+              <div className="supported-formats">
+                Supported: PDF, JPG, PNG, GIF, BMP, TIFF
               </div>
               <input
                 ref={fileInputRef}
                 type="file"
-                accept=".pdf"
+                accept=".pdf,.jpg,.jpeg,.png,.gif,.bmp,.tiff"
                 onChange={handleFileInputChange}
                 className="file-input"
               />
@@ -254,32 +304,97 @@ function App() {
             <button
               className="upload-button"
               onClick={handleUpload}
-              disabled={!pdfFile || !apiKey || isUploading}
+              disabled={!documentFile || !apiKey || isUploading}
             >
               {isUploading ? (
                 <>
                   <Loader className="loading-spinner" />
-                  Processing PDF...
+                  Processing Document...
                 </>
               ) : (
                 <>
-                  <FileText size={20} style={{ marginRight: '8px' }} />
-                  Upload & Process PDF
+                  <BookOpen size={20} style={{ marginRight: '8px' }} />
+                  Upload & Analyze Document
                 </>
               )}
             </button>
           </div>
         )}
 
-        {/* PDF Status */}
-        {pdfStatus.message && (
-          <div className={`pdf-status ${pdfStatus.hasPdf ? 'success' : 'error'}`}>
-            {pdfStatus.message}
+        {/* Document Status */}
+        {documentStatus.message && (
+          <div className={`document-status ${documentStatus.hasDocuments ? 'success' : 'error'}`}>
+            <div className="status-header">
+              <BookOpen size={20} />
+              <span>{documentStatus.message}</span>
+            </div>
+            {documentStatus.documents && documentStatus.documents.length > 0 && (
+              <div className="document-list">
+                {documentStatus.documents.map((doc, index) => (
+                  <div key={doc.id || index} className="document-item">
+                    <div className="document-info">
+                      <div className="document-type">
+                        {doc.type === 'pdf' ? <FileText size={16} /> : <FileImage size={16} />}
+                        <span>{doc.filename}</span>
+                      </div>
+                      {doc.case_numbers.length > 0 && (
+                        <div className="case-numbers">
+                          <strong>Case Numbers:</strong> {doc.case_numbers.join(', ')}
+                        </div>
+                      )}
+                      {doc.dates.length > 0 && (
+                        <div className="dates">
+                          <strong>Dates:</strong> {doc.dates.join(', ')}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Chat Mode Controls */}
+        {documentStatus.hasDocuments && (
+          <div className="chat-controls">
+            <div className="mode-selector">
+              <button
+                className={`mode-button ${chatMode === 'general' ? 'active' : ''}`}
+                onClick={() => setChatMode('general')}
+              >
+                <MessageCircle size={16} />
+                General Chat
+              </button>
+              <button
+                className={`mode-button ${chatMode === 'legal' ? 'active' : ''}`}
+                onClick={() => setChatMode('legal')}
+              >
+                <Gavel size={16} />
+                Legal Analysis
+              </button>
+            </div>
+            
+            {chatMode === 'legal' && (
+              <div className="analysis-type-selector">
+                <label>Analysis Type:</label>
+                <select
+                  value={analysisType}
+                  onChange={(e) => setAnalysisType(e.target.value)}
+                  className="analysis-select"
+                >
+                  <option value="general">General Analysis</option>
+                  <option value="relationships">Relationship Analysis</option>
+                  <option value="inconsistencies">Inconsistency Detection</option>
+                  <option value="citations">Citation Analysis</option>
+                </select>
+              </div>
+            )}
           </div>
         )}
 
         {/* Chat Section */}
-        {pdfStatus.hasPdf && (
+        {documentStatus.hasDocuments && (
           <div className="chat-section">
             <div className="chat-messages">
               {messages.length === 0 ? (
@@ -289,11 +404,23 @@ function App() {
                   padding: '40px 20px',
                   fontStyle: 'italic'
                 }}>
-                  <MessageCircle size={48} style={{ marginBottom: '20px', opacity: 0.5 }} />
-                  <div>Start chatting with your PDF!</div>
-                  <div style={{ fontSize: '0.9rem', marginTop: '10px' }}>
-                    Ask questions about the content of your uploaded document.
-                  </div>
+                  {chatMode === 'legal' ? (
+                    <>
+                      <Gavel size={48} style={{ marginBottom: '20px', opacity: 0.5 }} />
+                      <div>Start your legal analysis!</div>
+                      <div style={{ fontSize: '0.9rem', marginTop: '10px' }}>
+                        Ask about evidence, relationships, inconsistencies, or case strategy.
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <MessageCircle size={48} style={{ marginBottom: '20px', opacity: 0.5 }} />
+                      <div>Start chatting with your documents!</div>
+                      <div style={{ fontSize: '0.9rem', marginTop: '10px' }}>
+                        Ask questions about the content of your uploaded documents.
+                      </div>
+                    </>
+                  )}
                 </div>
               ) : (
                 messages.map((message, index) => (
@@ -310,7 +437,10 @@ function App() {
               <input
                 type="text"
                 className="chat-input"
-                placeholder="Ask a question about your PDF..."
+                placeholder={chatMode === 'legal' 
+                  ? "Ask about evidence, relationships, or case strategy..." 
+                  : "Ask a question about your documents..."
+                }
                 value={currentMessage}
                 onChange={(e) => setCurrentMessage(e.target.value)}
                 onKeyPress={handleKeyPress}
