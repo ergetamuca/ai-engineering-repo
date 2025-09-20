@@ -9,7 +9,7 @@ import shutil
 import base64
 from typing import Optional, List, Dict, Any
 import pypdf
-import pandas as pd
+import csv
 import io
 
 # Initialize FastAPI application
@@ -73,19 +73,28 @@ def load_pdf_text(file_path: str) -> List[str]:
 def process_csv(file_path: str, api_key: str) -> Dict[str, Any]:
     """Process CSV file and extract structured data for legal analysis."""
     try:
-        # Read CSV file
-        df = pd.read_csv(file_path)
+        # Read CSV file using built-in csv module
+        rows = []
+        with open(file_path, 'r', encoding='utf-8') as file:
+            csv_reader = csv.reader(file)
+            for row in csv_reader:
+                rows.append(row)
+        
+        if not rows:
+            raise Exception("CSV file is empty")
         
         # Get basic CSV information
+        headers = rows[0] if rows else []
+        data_rows = rows[1:] if len(rows) > 1 else []
+        
         csv_info = {
-            "rows": len(df),
-            "columns": len(df.columns),
-            "column_names": df.columns.tolist(),
-            "data_types": df.dtypes.to_dict(),
-            "sample_data": df.head(3).to_dict('records') if len(df) > 0 else []
+            "rows": len(data_rows),
+            "columns": len(headers),
+            "column_names": headers,
+            "sample_data": data_rows[:3] if data_rows else []
         }
         
-        # Convert DataFrame to text for analysis
+        # Convert CSV to text for analysis
         csv_text = f"CSV Data Summary:\n"
         csv_text += f"Rows: {csv_info['rows']}, Columns: {csv_info['columns']}\n"
         csv_text += f"Column Names: {', '.join(csv_info['column_names'])}\n\n"
@@ -94,11 +103,12 @@ def process_csv(file_path: str, api_key: str) -> Dict[str, Any]:
         if csv_info['sample_data']:
             csv_text += "Sample Data:\n"
             for i, row in enumerate(csv_info['sample_data']):
-                csv_text += f"Row {i+1}: {row}\n"
+                csv_text += f"Row {i+1}: {dict(zip(headers, row))}\n"
         
         # Add full data as text for RAG
         csv_text += "\nFull Data:\n"
-        csv_text += df.to_string(index=False)
+        for i, row in enumerate(data_rows):
+            csv_text += f"Row {i+1}: {dict(zip(headers, row))}\n"
         
         # Use OpenAI to analyze the CSV content
         client = OpenAI(api_key=api_key)
