@@ -1,24 +1,25 @@
-# Legal Discovery AI Assistant - Feature Merge Instructions
+# Document AI Assistant - Feature Merge Instructions
 
 ## 🏛️ Feature Summary
 
-This feature transforms the original PDF RAG Chat system into a comprehensive **Legal Discovery AI Assistant** designed specifically for legal professionals. The application now supports both PDF and image document uploads, provides specialized legal analysis capabilities, and offers a professional legal-themed interface.
+This feature transforms the original PDF RAG Chat system into a comprehensive **Document AI Assistant** designed for intelligent analysis of various document types. The application now supports both PDF and CSV document uploads, provides specialized analysis capabilities, and offers a professional interface with advanced RAG functionality using the aimakerspace library.
 
 ### Key Features Added:
-- **Multi-format Document Support**: PDFs (max 4MB) and Images (max 10MB) - JPG, PNG, GIF, BMP, TIFF
-- **OpenAI Vision API Integration**: Advanced image analysis for legal documents
-- **Legal Document Analysis**: Automatic extraction of case numbers, dates, and legal terms
-- **Specialized Chat Modes**: General Chat vs Legal Analysis with different analysis types
-- **Professional Legal UI**: Blue and gold color scheme with legal icons and terminology
+- **Multi-format Document Support**: PDFs (max 4MB) and CSV files (max 10MB)
+- **Advanced RAG System**: Integration with aimakerspace library for sophisticated document processing
+- **Document Analysis**: Automatic extraction of case numbers, dates, and key terms from both PDFs and CSVs
+- **Professional UI**: Clean blue and gold color scheme with relevant icons and terminology
 - **Evidence Cross-referencing**: Document metadata tracking and citation management
-- **Multiple Analysis Types**: General, Relationship, Inconsistency Detection, and Citation Analysis
+- **CSV Processing**: Structured data analysis for legal discovery and business intelligence
+- **Real-time Chat**: Streaming AI responses with context-aware document analysis
 
 ### Technical Improvements:
-- Enhanced backend API with new endpoints (`/api/upload-document`, `/api/legal-analysis`)
-- Legal document processing with regex-based extraction
-- Improved error handling and file validation
-- Professional legal-themed frontend with mode controls
-- Document status tracking and metadata display
+- **Aimakerspace Integration**: Full integration with VectorDatabase, CharacterTextSplitter, ChatOpenAI, and EmbeddingModel
+- **Enhanced Backend API**: New endpoints (`/api/upload-document`, `/api/rag-chat`) with advanced RAG capabilities
+- **Document Processing**: Support for both PDF and CSV with specialized analysis functions
+- **Improved Error Handling**: Comprehensive file validation and user-friendly error messages
+- **Professional Frontend**: Clean interface with drag-and-drop upload and real-time streaming
+- **Document Status Tracking**: Metadata display and document management
 
 ---
 
